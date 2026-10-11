@@ -1,10 +1,10 @@
 {
   "name": "tablic",
   "display_name": "Tablić",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "ui_qml",
   "category": "games",
-  "description": "Serbian Tablić — premium felt table, capture to 101. Play vs PC or online host/join via Logos delivery.",
+  "description": "Serbian Tablić — openable capture stacks, 2×2 table, take/drop flow, capture fly motion. Play vs PC or online via Logos delivery.",
   "view": "qml/Main.qml",
   "icon": "src/icons/icon.png",
   "dependencies": [],

@@ -39,9 +39,10 @@ node tests/game.test.mjs
 
 ## Play
 
-1. Select a card in your hand (suggested capture is pre-selected).
-2. Optionally click table cards to adjust the take, **Next take** to cycle options, or **Ace as 1/11**.
-3. **Take** to capture, or **Drop** to leave your card on the table.
+1. **Take:** tap table cards to mark a capture set, then tap a hand card that matches — cards fly into your capture stack.
+2. **Drop:** tap a hand card first, then **Drop** (or tap the table to switch into take mode instead). Ace: **Ace as 1/11** before dropping.
+3. **Stacks:** tap your pile (bottom-left) or the opponent/PC pile (top-right) anytime to inspect captured cards. Closings and opponent takes also fly into the correct pile.
+4. Table layout is a **2-column grid** (reads as 2×2 with four cards).
 
 | Mode | Notes |
 | --- | --- |
@@ -57,7 +58,7 @@ https://raw.githubusercontent.com/uNexpectedR/tablic/main/logos-repo.json
 ```
 
 1. **Settings → Package Repositories → Add repository** (or refresh if already added).
-2. Package Manager → **Tablić** `0.5.0` → Install (allow unsigned if prompted).
+2. Package Manager → **Tablić** `0.6.0` → Install (allow unsigned if prompted).
 3. Open Tablić from the sidebar.
 4. For online play: load **delivery_module** (Module Inspector) if Host/Join errors.
 
