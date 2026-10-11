@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "name": "tablic",
+  "displayName": "Tablić",
+  "description": "Tablić — Serbian card game ui_qml module for Logos Basecamp.",
+  "homepage": "https://github.com/uNexpectedR/tablic",
+  "indexUrl": "https://github.com/uNexpectedR/tablic/releases/download/index/index.json",
+  "trustedSigners": []
+}

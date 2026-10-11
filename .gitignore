@@ -1,0 +1,9 @@
+result
+result-*
+.direnv/
+*.lgx
+.qmlcache/
+*.qmlc
+*.jsc
+.DS_Store
+node_modules/
