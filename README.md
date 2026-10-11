@@ -47,22 +47,16 @@ node tests/game.test.mjs
 
 ## Install in Logos Basecamp
 
-### Local package (ready now)
-
-```bash
-git clone https://github.com/uNexpectedR/tablic.git
-cd tablic
-nix build .#lgx
-```
-
-Package Manager → **Install Local Package** → select the `.lgx` (allow unsigned). For online play, load **delivery_module**.
-
-### Catalog (after publishing a release)
+Paste repository URL:
 
 ```text
 https://raw.githubusercontent.com/uNexpectedR/tablic/main/logos-repo.json
 ```
 
-Add that URL under Package Repositories, then install **Tablić**. The rolling `index` release must include `tablic` (run the module release Action, then rebuild index).
+1. **Settings → Package Repositories → Add repository** (or refresh if already added).
+2. Package Manager → **Tablić** `0.1.0` → Install (allow unsigned if prompted).
+3. Open Tablić from the sidebar.
+4. For online play: load **delivery_module** (Module Inspector) if Host/Join errors.
 
-`trustedSigners` is empty (unsigned packages). Catalog URL uses this repository’s `logos-repo.json`.
+`trustedSigners` is empty (unsigned packages).
+
