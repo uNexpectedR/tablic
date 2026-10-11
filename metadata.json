@@ -1,10 +1,10 @@
 {
   "name": "tablic",
   "display_name": "Tablić",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "type": "ui_qml",
   "category": "games",
-  "description": "Serbian Tablić — openable capture stacks, 2×2 table, take/drop flow, capture fly motion. Play vs PC or online via Logos delivery.",
+  "description": "Serbian Tablić — live scoreboard & tablas, openable stacks, 2×2 table, take/drop, capture fly. Play vs PC or online via Logos delivery.",
   "view": "qml/Main.qml",
   "icon": "src/icons/icon.png",
   "dependencies": [],
