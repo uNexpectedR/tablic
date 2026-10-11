@@ -56,7 +56,7 @@ Item {
         if (!result.ok)
             return
         clearSelection()
-        matchChanged()
+        bumpMatch()
         tick++
         scheduleAi()
     }
@@ -176,7 +176,7 @@ Item {
         if (!result.ok)
             return
         clearSelection()
-        matchChanged()
+        bumpMatch()
         tick++
         moveIntent(msg)
         scheduleAi()
@@ -188,7 +188,7 @@ Item {
         if (msg.t === "next") {
             Game.continueMatch(match)
             clearSelection()
-            matchChanged()
+            bumpMatch()
             tick++
             return
         }
@@ -200,7 +200,7 @@ Item {
         var result = Game.playMove(match, msg.seat, msg.cardId, msg.captureIds || [], msg.aceAs || 1)
         if (result.ok) {
             clearSelection()
-            matchChanged()
+            bumpMatch()
             tick++
         }
     }
@@ -211,14 +211,14 @@ Item {
         // In vs-PC, either seat may advance; online only the local player clicks.
         Game.continueMatch(match)
         clearSelection()
-        matchChanged()
+        bumpMatch()
         tick++
         moveIntent({ t: "next" })
         nextRoundRequested()
         scheduleAi()
     }
 
-    function matchChanged() {
+    function bumpMatch() {
         // force property bindings that depend on nested fields
         match = match
     }

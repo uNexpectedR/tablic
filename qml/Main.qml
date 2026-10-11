@@ -141,5 +141,5 @@ Item {
         }
     }
 
-    Component.onCompleted: console.log("Tablić Main.qml ready (0.4.1)")
+    Component.onCompleted: console.log("Tablić Main.qml ready (0.4.2)")
 }

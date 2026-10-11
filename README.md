@@ -55,7 +55,7 @@ https://raw.githubusercontent.com/uNexpectedR/tablic/main/logos-repo.json
 ```
 
 1. **Settings → Package Repositories → Add repository** (or refresh if already added).
-2. Package Manager → **Tablić** `0.4.1` → Install (allow unsigned if prompted).
+2. Package Manager → **Tablić** `0.4.2` → Install (allow unsigned if prompted).
 3. Open Tablić from the sidebar.
 4. For online play: load **delivery_module** (Module Inspector) if Host/Join errors.
 

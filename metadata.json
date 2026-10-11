@@ -1,7 +1,7 @@
 {
   "name": "tablic",
   "display_name": "Tablić",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "type": "ui_qml",
   "category": "games",
   "description": "Serbian Tablić card game. Capture the table, score to 101. Play against PC or online host/join via Logos delivery.",
