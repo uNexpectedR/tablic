@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "js/Theme.js" as T
 
 Item {
     id: root
@@ -10,133 +11,138 @@ Item {
     signal hostOnline()
     signal joinOnline(string code)
 
-    readonly property color cream: "#f3ebe0"
-    readonly property color muted: "#c4b8a8"
-    readonly property color gold: "#c9a227"
-    readonly property color line: "#f3ebe033"
-
-    property real drift: 0
-
+    // Atmosphere
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0; color: "#0a2018" }
-            GradientStop { position: 0.4; color: "#0f3a2c" }
-            GradientStop { position: 0.75; color: "#145a43" }
-            GradientStop { position: 1; color: "#1a2a20" }
+            GradientStop { position: 0; color: T.feltDeep }
+            GradientStop { position: 0.45; color: T.feltMid }
+            GradientStop { position: 1; color: "#12261c" }
         }
     }
 
-    // Soft felt shimmer — motion #1
+    // Soft light pool on felt
     Rectangle {
-        width: parent.width * 0.7
-        height: width
-        radius: width / 2
+        width: parent.width * 0.85
+        height: width * 0.55
+        radius: width
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: Math.sin(root.drift) * 12
-        y: parent.height * 0.15 - height * 0.2
-        color: "#2a8f68"
-        opacity: 0.08 + Math.sin(root.drift * 0.9) * 0.02
-        scale: 1 + Math.sin(root.drift * 0.7) * 0.03
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: -40
+        color: T.feltLite
+        opacity: 0.12
+        scale: 1
+        SequentialAnimation on opacity {
+            loops: Animation.Infinite
+            NumberAnimation { from: 0.1; to: 0.16; duration: 4200; easing.type: Easing.InOutSine }
+            NumberAnimation { from: 0.16; to: 0.1; duration: 4200; easing.type: Easing.InOutSine }
+        }
     }
 
-    // Fan of decorative cards — motion #2 (slow sway)
+    // Decorative card fan
     Row {
+        id: fan
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: parent.height * 0.08
-        spacing: -28
-        opacity: 0.35
-        rotation: Math.sin(root.drift * 0.5) * 2
+        anchors.bottomMargin: parent.height * 0.07
+        spacing: -30
+        opacity: 0.4
+        property real sway: 0
+        transform: Rotation {
+            origin.x: fan.width / 2
+            origin.y: fan.height
+            angle: Math.sin(fan.sway) * 2.2
+        }
+        NumberAnimation on sway {
+            from: 0; to: 6.28318
+            duration: 9000
+            loops: Animation.Infinite
+        }
         Repeater {
-            model: ["A♠", "10♦", "K♥", "2♣", "Q♦"]
+            model: [
+                { r: "A", s: "♠", red: false },
+                { r: "10", s: "♦", red: true },
+                { r: "K", s: "♥", red: true },
+                { r: "2", s: "♣", red: false },
+                { r: "Q", s: "♦", red: true }
+            ]
             delegate: Rectangle {
-                width: 54
-                height: 78
-                radius: 4
-                color: "#f3ebe0"
-                border.color: "#1a1410"
+                width: 56
+                height: 80
+                radius: 5
+                color: T.ivory
+                border.color: "#2a2218"
                 border.width: 1
-                rotation: (index - 2) * 8
-                y: Math.abs(index - 2) * 6
+                rotation: (index - 2) * 9
+                y: Math.abs(index - 2) * 7
                 Text {
                     anchors.centerIn: parent
-                    text: modelData
-                    color: modelData.indexOf("♥") >= 0 || modelData.indexOf("♦") >= 0 ? "#b33a3a" : "#1a1410"
-                    font.family: "Libre Baskerville"
-                    font.pixelSize: 14
+                    text: modelData.r + modelData.s
+                    color: modelData.red ? T.crimson : T.ink
+                    font.family: T.displayFont
+                    font.pixelSize: 15
                     font.bold: true
                 }
             }
         }
     }
 
-    Timer {
-        interval: 40
-        running: root.visible
-        repeat: true
-        onTriggered: root.drift += 0.04
-    }
-
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        anchors.verticalCenterOffset: -24
-        width: Math.min(parent.width - 48, 400)
-        spacing: 12
+        anchors.verticalCenterOffset: -28
+        width: Math.min(parent.width - 48, 380)
+        spacing: 10
 
         Text {
+            id: title
             Layout.fillWidth: true
             text: "Tablić"
-            color: cream
-            font.family: "Libre Baskerville"
-            font.pixelSize: 56
-            font.weight: Font.Normal
+            color: T.cream
+            font.family: T.displayFont
+            font.pixelSize: 64
             horizontalAlignment: Text.AlignHCenter
             opacity: 0
-            scale: 0.96
+            scale: 0.94
             transformOrigin: Item.Center
             SequentialAnimation on opacity {
-                running: true
                 NumberAnimation { from: 0; to: 1; duration: 700; easing.type: Easing.OutCubic }
             }
             SequentialAnimation on scale {
-                running: true
-                NumberAnimation { from: 0.94; to: 1; duration: 800; easing.type: Easing.OutCubic }
+                NumberAnimation { from: 0.94; to: 1; duration: 780; easing.type: Easing.OutCubic }
             }
         }
         Text {
             Layout.fillWidth: true
-            text: "Capture the table, race to 101 — vs PC or online."
-            color: muted
-            font.family: "Source Sans 3"
+            text: "Capture the table. First to 101."
+            color: T.inkSoft
+            font.family: T.bodyFont
             font.pixelSize: 15
-            wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter
             opacity: 0
             NumberAnimation on opacity { from: 0; to: 1; duration: 900; easing.type: Easing.OutCubic }
         }
 
-        Item { Layout.preferredHeight: 12 }
+        Item { Layout.preferredHeight: 14 }
 
         Button {
-            id: onlineHost
+            id: hostBtn
             Layout.fillWidth: true
             text: "Host online match"
             onClicked: root.hostOnline()
             contentItem: Text {
-                text: onlineHost.text
-                color: "#12100e"
-                font.family: "Source Sans 3"
+                text: hostBtn.text
+                color: T.ink
+                font.family: T.bodyFont
                 font.pixelSize: 15
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
             background: Rectangle {
-                implicitHeight: 46
-                color: onlineHost.down ? "#e0c35a" : gold
-                radius: 3
+                implicitHeight: 48
+                color: hostBtn.down ? T.brassHot : T.brass
+                radius: 4
             }
         }
 
@@ -147,16 +153,16 @@ Item {
                 id: joinField
                 Layout.fillWidth: true
                 placeholderText: "Room code"
-                color: cream
-                font.family: "Source Sans 3"
+                color: T.cream
+                font.family: T.bodyFont
                 font.pixelSize: 14
                 font.capitalization: Font.AllUppercase
                 background: Rectangle {
-                    color: "#0a1812"
-                    border.color: line
+                    color: "#06140f"
+                    border.color: T.line
                     border.width: 1
-                    radius: 3
-                    implicitHeight: 46
+                    radius: 4
+                    implicitHeight: 48
                 }
             }
             Button {
@@ -165,20 +171,20 @@ Item {
                 onClicked: root.joinOnline(joinField.text)
                 contentItem: Text {
                     text: joinBtn.text
-                    color: cream
-                    font.family: "Source Sans 3"
+                    color: T.cream
+                    font.family: T.bodyFont
                     font.pixelSize: 14
                     font.bold: true
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
                 background: Rectangle {
-                    implicitWidth: 88
-                    implicitHeight: 46
-                    color: "#1a4030"
-                    border.color: line
+                    implicitWidth: 92
+                    implicitHeight: 48
+                    color: "#143528"
+                    border.color: T.line
                     border.width: 1
-                    radius: 3
+                    radius: 4
                 }
             }
         }
@@ -190,24 +196,24 @@ Item {
             onClicked: root.playAi()
             contentItem: Text {
                 text: aiBtn.text
-                color: cream
-                font.family: "Source Sans 3"
+                color: T.cream
+                font.family: T.bodyFont
                 font.pixelSize: 14
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
             background: Rectangle {
-                implicitHeight: 42
+                implicitHeight: 44
                 color: "transparent"
-                border.color: line
+                border.color: T.line
                 border.width: 1
-                radius: 3
+                radius: 4
             }
         }
 
         Text {
             Layout.fillWidth: true
-            Layout.topMargin: 6
+            Layout.topMargin: 8
             text: {
                 if (!net)
                     return ""
@@ -215,10 +221,12 @@ Item {
                     return net.detail
                 if (net.role === "host" && net.roomCode)
                     return "Your code: " + net.roomCode + (net.detail ? "\n" + net.detail : "")
-                return net.detail || (net.logosAvailable ? "Online via Logos delivery (logos.dev)." : "Preview mode — online needs Basecamp.")
+                return net.detail || (net.logosAvailable
+                    ? "Online via Logos delivery."
+                    : "Preview — online needs Basecamp.")
             }
-            color: net && net.status === "error" ? "#e07060" : muted
-            font.family: "Source Sans 3"
+            color: net && net.status === "error" ? "#e07060" : T.inkSoft
+            font.family: T.bodyFont
             font.pixelSize: 12
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter

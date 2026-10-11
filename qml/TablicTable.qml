@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "."
+import "js/Theme.js" as T
 import "js/Game.js" as Game
 import "js/Cards.js" as Cards
 import "js/Ai.js" as Ai
@@ -11,7 +12,7 @@ Item {
 
     property var match: null
     property int localSeat: 0
-    property string role: "ai"   // ai | host | guest
+    property string role: "ai"
 
     signal moveIntent(var msg)
     signal menuRequested()
@@ -23,12 +24,12 @@ Item {
     property int optionIndex: 0
     property var currentOptions: []
     property int tick: 0
+    property int dealGen: 0
 
     readonly property int viewSeat: localSeat
     readonly property int aiSeat: 1
     readonly property bool myTurn: match && match.phase === "play" && match.turn === localSeat
-    readonly property bool aiTurn: role === "ai" && match && match.phase === "play"
-        && match.turn === aiSeat
+    readonly property bool aiTurn: role === "ai" && match && match.phase === "play" && match.turn === aiSeat
     readonly property var myHand: (tick, match && match.players) ? match.players[viewSeat].hand : []
     readonly property int oppHandCount: (tick, match && match.players) ? match.players[oppSeat].hand.length : 0
     readonly property int tableCount: (tick, match) ? match.table.length : 0
@@ -36,7 +37,7 @@ Item {
 
     Timer {
         id: aiTimer
-        interval: 550
+        interval: 520
         repeat: false
         onTriggered: root.playAiMove()
     }
@@ -65,6 +66,7 @@ Item {
         aiTimer.stop()
         match = Game.newMatch(seed === undefined ? Date.now() : seed)
         clearSelection()
+        dealGen++
         tick++
         scheduleAi()
     }
@@ -124,7 +126,6 @@ Item {
             next.splice(idx, 1)
         else
             next.push(cardId)
-        // validate against options
         var key = next.slice().sort(function (a, b) { return a - b }).join(",")
         for (var i = 0; i < currentOptions.length; i++) {
             var k = currentOptions[i].captureIds.slice().sort(function (a, b) { return a - b }).join(",")
@@ -135,7 +136,6 @@ Item {
                 return
             }
         }
-        // if empty selection of captures is always ok (drop)
         if (next.length === 0) {
             selectedCapture = []
             tick++
@@ -165,13 +165,7 @@ Item {
             return
         var ids = capture === undefined ? selectedCapture.slice() : capture
         var seat = match.turn
-        var msg = {
-            t: "move",
-            seat: seat,
-            cardId: selectedCardId,
-            captureIds: ids,
-            aceAs: aceAs
-        }
+        var msg = { t: "move", seat: seat, cardId: selectedCardId, captureIds: ids, aceAs: aceAs }
         var result = Game.playMove(match, seat, selectedCardId, ids, aceAs)
         if (!result.ok)
             return
@@ -188,14 +182,12 @@ Item {
         if (msg.t === "next") {
             Game.continueMatch(match)
             clearSelection()
+            dealGen++
             bumpMatch()
             tick++
             return
         }
-        if (msg.t !== "move")
-            return
-        // ignore echo of own seat when online
-        if (msg.seat === localSeat)
+        if (msg.t !== "move" || msg.seat === localSeat)
             return
         var result = Game.playMove(match, msg.seat, msg.cardId, msg.captureIds || [], msg.aceAs || 1)
         if (result.ok) {
@@ -208,9 +200,9 @@ Item {
     function continueRound() {
         if (!match || match.phase !== "scoring")
             return
-        // In vs-PC, either seat may advance; online only the local player clicks.
         Game.continueMatch(match)
         clearSelection()
+        dealGen++
         bumpMatch()
         tick++
         moveIntent({ t: "next" })
@@ -219,7 +211,6 @@ Item {
     }
 
     function bumpMatch() {
-        // force property bindings that depend on nested fields
         match = match
     }
 
@@ -227,29 +218,57 @@ Item {
         return selectedCapture.indexOf(id) >= 0
     }
 
+    // Felt room
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0; color: "#0c3d2e" }
-            GradientStop { position: 0.55; color: "#145a43" }
-            GradientStop { position: 1; color: "#0a281c" }
+            GradientStop { position: 0; color: T.feltDeep }
+            GradientStop { position: 0.5; color: T.feltMid }
+            GradientStop { position: 1; color: "#081810" }
         }
     }
 
-    // Score / status bar
+    // Oval table
+    Rectangle {
+        id: felt
+        width: Math.min(parent.width - 48, 640)
+        height: Math.min(parent.height * 0.52, 320)
+        radius: height
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenterOffset: -12
+        gradient: Gradient {
+            GradientStop { position: 0; color: "#1a6a4c" }
+            GradientStop { position: 0.55; color: "#124a36" }
+            GradientStop { position: 1; color: "#0c3226" }
+        }
+        border.color: "#c9a22740"
+        border.width: 2
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 10
+            radius: height
+            color: "transparent"
+            border.color: "#00000022"
+            border.width: 1
+        }
+    }
+
+    // Top bar
     RowLayout {
         id: topBar
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.margins: 14
+        anchors.margins: 16
         spacing: 12
 
         Text {
             text: "Tablić"
-            color: "#f3ebe0"
-            font.family: "Libre Baskerville"
-            font.pixelSize: 22
+            color: T.cream
+            font.family: T.displayFont
+            font.pixelSize: 24
         }
         Item { Layout.fillWidth: true }
         Text {
@@ -260,8 +279,8 @@ Item {
                     return "You " + match.players[0].score + "  ·  PC " + match.players[1].score + "  →  101"
                 return "P1 " + match.players[0].score + "  ·  P2 " + match.players[1].score + "  →  101"
             }
-            color: "#c4b8a8"
-            font.family: "Source Sans 3"
+            color: T.inkSoft
+            font.family: T.bodyFont
             font.pixelSize: 14
         }
         Button {
@@ -269,18 +288,18 @@ Item {
             onClicked: root.menuRequested()
             contentItem: Text {
                 text: parent.text
-                color: "#f3ebe0"
-                font.family: "Source Sans 3"
+                color: T.cream
+                font.family: T.bodyFont
                 font.pixelSize: 13
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
             background: Rectangle {
-                implicitWidth: 64
-                implicitHeight: 30
+                implicitWidth: 68
+                implicitHeight: 32
                 color: "transparent"
-                border.color: "#f3ebe033"
-                radius: 3
+                border.color: T.line
+                radius: 4
             }
         }
     }
@@ -288,7 +307,7 @@ Item {
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: topBar.bottom
-        anchors.topMargin: 4
+        anchors.topMargin: 2
         text: {
             if (!match)
                 return ""
@@ -297,27 +316,28 @@ Item {
             if (match.phase === "scoring")
                 return match.message + "  ·  Continue for next deal"
             var who = match.turn === localSeat
-                      ? "Your turn"
-                      : (role === "ai" ? "PC thinking…" : "Opponent's turn")
+                ? "Your turn"
+                : (role === "ai" ? "PC thinking…" : "Opponent's turn")
             var tabla = match.message.indexOf("Tabla") >= 0 ? "  ·  Tabla!" : ""
             return who + "  ·  stock " + match.stock.length + tabla
         }
-        color: "#e0c35a"
-        font.family: "Source Sans 3"
+        color: T.brassHot
+        font.family: T.bodyFont
         font.pixelSize: 13
     }
 
-    // Opponent hand (backs)
+    // Opponent backs
     Row {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: 64
-        spacing: -36
+        anchors.topMargin: 62
+        spacing: -40
         Repeater {
             model: oppHandCount
             TablicCard {
                 faceDown: true
-                scale: 0.72
+                scale: 0.7
+                dealIndex: index
                 enabled: false
             }
         }
@@ -326,25 +346,26 @@ Item {
     Text {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: 58
-        text: (tick, match) ? ("captured " + match.players[oppSeat].captured.length
-                       + " · T" + match.roundTablas[oppSeat]) : ""
-        color: "#c4b8a888"
-        font.family: "Source Sans 3"
+        anchors.topMargin: 56
+        text: (tick, match)
+            ? ("captured " + match.players[oppSeat].captured.length + " · T" + match.roundTablas[oppSeat])
+            : ""
+        color: "#c4b8a870"
+        font.family: T.bodyFont
         font.pixelSize: 11
     }
 
-    // Table (talon)
+    // Table cards on felt
     Flow {
         id: tableFlow
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.verticalCenterOffset: -20
-        width: Math.min(parent.width - 48, 520)
-        spacing: 10
+        anchors.centerIn: felt
+        width: Math.min(felt.width - 56, 480)
+        spacing: 12
         Repeater {
             model: tableCount
             TablicCard {
+                // dealGen forces re-deal animation on new rounds
+                dealIndex: (dealGen * 8 + index) % 12
                 card: match.table[index]
                 marked: root.isMarked(match.table[index].id)
                 dimmed: root.selectedCardId >= 0 && !marked && currentOptions.length > 0
@@ -352,21 +373,23 @@ Item {
             }
         }
         Text {
-            visible: match && tableCount === 0
-            text: "Table clear — play a card"
-            color: "#c4b8a8"
-            font.family: "Source Sans 3"
+            visible: match && tableCount === 0 && match.phase === "play"
+            text: "Table clear — drop a card"
+            color: T.cream
+            opacity: 0.55
+            font.family: T.bodyFont
             font.pixelSize: 14
             width: tableFlow.width
             horizontalAlignment: Text.AlignHCenter
+            topPadding: 36
         }
     }
 
-    // Controls
+    // Action strip
     Row {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: handRow.top
-        anchors.bottomMargin: 12
+        anchors.bottomMargin: 14
         spacing: 8
         visible: match && match.phase === "play" && myTurn && selectedCardId >= 0
 
@@ -381,17 +404,17 @@ Item {
             onClicked: root.toggleAce()
             contentItem: Text {
                 text: parent.text
-                color: "#f3ebe0"
-                font.family: "Source Sans 3"
+                color: T.cream
+                font.family: T.bodyFont
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
             background: Rectangle {
-                implicitHeight: 34
-                implicitWidth: 88
-                color: "#1a4030"
-                radius: 3
+                implicitHeight: 36
+                implicitWidth: 90
+                color: "#143528"
+                radius: 4
             }
         }
         Button {
@@ -400,17 +423,17 @@ Item {
             onClicked: root.cycleOption()
             contentItem: Text {
                 text: parent.text
-                color: "#f3ebe0"
-                font.family: "Source Sans 3"
+                color: T.cream
+                font.family: T.bodyFont
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
             background: Rectangle {
-                implicitHeight: 34
-                implicitWidth: 88
-                color: "#1a4030"
-                radius: 3
+                implicitHeight: 36
+                implicitWidth: 90
+                color: "#143528"
+                radius: 4
             }
         }
         Button {
@@ -418,23 +441,23 @@ Item {
             onClicked: root.commitPlay()
             contentItem: Text {
                 text: parent.text
-                color: "#12100e"
-                font.family: "Source Sans 3"
+                color: T.ink
+                font.family: T.bodyFont
                 font.pixelSize: 13
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
             background: Rectangle {
-                implicitHeight: 34
-                implicitWidth: 88
-                color: "#c9a227"
-                radius: 3
+                implicitHeight: 36
+                implicitWidth: 96
+                color: T.brass
+                radius: 4
             }
         }
     }
 
-    // Scoring / over overlay actions
+    // Scoring / over
     Column {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
@@ -443,34 +466,34 @@ Item {
         z: 5
 
         Rectangle {
-            width: 320
-            height: 160
-            radius: 6
-            color: "#12100eee"
-            border.color: "#c9a22766"
+            width: 340
+            height: 168
+            radius: 8
+            color: T.panel
+            border.color: "#c9a22755"
             Column {
                 anchors.centerIn: parent
-                spacing: 8
-                width: parent.width - 32
+                spacing: 10
+                width: parent.width - 36
                 Text {
                     width: parent.width
                     wrapMode: Text.WordWrap
                     horizontalAlignment: Text.AlignHCenter
                     text: match ? match.message : ""
-                    color: "#f3ebe0"
-                    font.family: "Libre Baskerville"
-                    font.pixelSize: 16
+                    color: T.cream
+                    font.family: T.displayFont
+                    font.pixelSize: 17
                 }
                 Text {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     visible: match && match.phase === "scoring"
                     text: match
-                          ? ("Cards " + match.players[0].roundCards + "–" + match.players[1].roundCards
-                             + "  ·  Tablas " + match.roundTablas[0] + "–" + match.roundTablas[1])
-                          : ""
-                    color: "#c4b8a8"
-                    font.family: "Source Sans 3"
+                        ? ("Cards " + match.players[0].roundCards + "–" + match.players[1].roundCards
+                           + "  ·  Tablas " + match.roundTablas[0] + "–" + match.roundTablas[1])
+                        : ""
+                    color: T.inkSoft
+                    font.family: T.bodyFont
                     font.pixelSize: 12
                 }
                 Button {
@@ -484,38 +507,41 @@ Item {
                     }
                     contentItem: Text {
                         text: parent.text
-                        color: "#12100e"
-                        font.family: "Source Sans 3"
+                        color: T.ink
+                        font.family: T.bodyFont
                         font.pixelSize: 13
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
                     background: Rectangle {
-                        implicitHeight: 36
-                        implicitWidth: 140
-                        color: "#c9a227"
-                        radius: 3
+                        implicitHeight: 38
+                        implicitWidth: 148
+                        color: T.brass
+                        radius: 4
                     }
                 }
             }
         }
     }
 
-    // Own hand
+    // Own hand — slight fan
     Row {
         id: handRow
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 18
-        spacing: 8
+        anchors.bottomMargin: 16
+        spacing: -6
         Repeater {
             model: myHand.length
             TablicCard {
                 card: myHand[index]
+                dealIndex: index
                 selected: selectedCardId === myHand[index].id
                 dimmed: !myTurn
                 enabled: myTurn
+                rotation: (index - (myHand.length - 1) / 2) * 3.5
+                transformOrigin: Item.Bottom
                 onClicked: root.selectHandCard(myHand[index].id)
             }
         }
@@ -525,10 +551,11 @@ Item {
         anchors.left: parent.left
         anchors.bottom: parent.bottom
         anchors.margins: 14
-        text: match ? ("you captured " + match.players[viewSeat].captured.length
-                       + " · T" + match.roundTablas[viewSeat]) : ""
-        color: "#c4b8a888"
-        font.family: "Source Sans 3"
+        text: match
+            ? ("you captured " + match.players[viewSeat].captured.length + " · T" + match.roundTablas[viewSeat])
+            : ""
+        color: "#c4b8a870"
+        font.family: T.bodyFont
         font.pixelSize: 11
     }
 }
