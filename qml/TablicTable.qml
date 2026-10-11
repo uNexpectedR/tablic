@@ -96,14 +96,39 @@ Item {
         for (var i = 0; i < cards.length; i++) {
             flyerComponent.createObject(flyLayer, {
                 card: cards[i],
+                faceDown: false,
                 startX: start.x - T.cardW * 0.35 + i * 12,
                 startY: start.y - T.cardH * 0.35 + (i % 2) * 6,
                 endX: end.x - T.cardW * 0.22 + i * 3,
                 endY: end.y - T.cardH * 0.22,
                 delayMs: i * 52,
-                twist: seat === viewSeat ? -8 + i * 3 : 8 - i * 3
+                twist: seat === viewSeat ? -8 + i * 3 : 8 - i * 3,
+                endScale: 0.28,
+                flyMs: 420
             })
         }
+    }
+
+    function flyDrop(seat, card) {
+        if (!card)
+            return
+        var from = seat === viewSeat ? handRow : oppHandRow
+        var start = from.mapToItem(flyLayer, from.width * 0.5 - T.cardW * 0.35,
+                                   from.height * 0.35)
+        var end = felt.mapToItem(flyLayer, felt.width * 0.5 - T.cardW * 0.4,
+                                 felt.height * 0.5 - T.cardH * 0.4)
+        flyerComponent.createObject(flyLayer, {
+            card: card,
+            faceDown: false,
+            startX: start.x,
+            startY: start.y,
+            endX: end.x,
+            endY: end.y,
+            delayMs: 0,
+            twist: seat === viewSeat ? -6 : 6,
+            endScale: 0.95,
+            flyMs: 380
+        })
     }
 
     function playAiMove() {
@@ -114,16 +139,24 @@ Item {
             return
         var ids = mv.captureIds || []
         var flight = ids.length ? gatherTakeCards(aiSeat, mv.cardId, ids) : []
+        var dropCard = null
+        if (!ids.length) {
+            var hc = Cards.findById(match.players[aiSeat].hand, mv.cardId)
+            if (hc)
+                dropCard = Cards.cloneCard(hc)
+        }
         var result = Game.playMove(match, aiSeat, mv.cardId, ids, mv.aceAs || 1)
         if (!result.ok)
             return
         if (flight.length)
             flyCapture(aiSeat, flight)
+        else if (dropCard)
+            flyDrop(aiSeat, dropCard)
         clearSelection()
         bumpMatch()
         noteTabla()
         tick++
-        scheduleAi(flight.length ? 420 : 0)
+        scheduleAi(flight.length || dropCard ? 420 : 0)
     }
 
     function restart(seed) {
@@ -277,10 +310,18 @@ Item {
             return
         var ids = msg.captureIds || []
         var flight = ids.length ? gatherTakeCards(msg.seat, msg.cardId, ids) : []
+        var dropCard = null
+        if (!ids.length) {
+            var hc = Cards.findById(match.players[msg.seat].hand, msg.cardId)
+            if (hc)
+                dropCard = Cards.cloneCard(hc)
+        }
         var result = Game.playMove(match, msg.seat, msg.cardId, ids, msg.aceAs || 1)
         if (result.ok) {
             if (flight.length)
                 flyCapture(msg.seat, flight)
+            else if (dropCard)
+                flyDrop(msg.seat, dropCard)
             clearSelection()
             bumpMatch()
             noteTabla()
@@ -310,7 +351,8 @@ Item {
     }
 
     function openPile(seat) {
-        if (!match || !match.players[seat].captured.length)
+        // Own captures only — opponent/PC pile stays secret (count / face-down)
+        if (!match || seat !== viewSeat || !match.players[seat].captured.length)
             return
         pileOpen = seat
     }
@@ -517,6 +559,7 @@ Item {
 
     // Opponent hand
     Row {
+        id: oppHandRow
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: 62
@@ -532,7 +575,7 @@ Item {
         }
     }
 
-    // Opponent capture stack (top-right)
+    // Opponent capture stack — face-down count only (not inspectable)
     Item {
         id: oppPile
         width: 56
@@ -559,6 +602,18 @@ Item {
                     GradientStop { position: 0; color: "#1a6b4c" }
                     GradientStop { position: 1; color: "#0c3528" }
                 }
+                // lattice hint so it reads as a face-down back
+                Repeater {
+                    model: 3
+                    Rectangle {
+                        width: parent.width * 1.2
+                        height: 1
+                        color: "#c9a22728"
+                        rotation: 34
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: 14 + index * 14
+                    }
+                }
             }
         }
         Text {
@@ -578,11 +633,6 @@ Item {
             color: "#c4b8a870"
             font.family: T.bodyFont
             font.pixelSize: 10
-        }
-        MouseArea {
-            anchors.fill: parent
-            enabled: oppCaptured.length > 0
-            onClicked: root.openPile(oppSeat)
         }
     }
 
@@ -824,25 +874,29 @@ Item {
         Item {
             id: flyer
             property var card: null
+            property bool faceDown: false
             property real startX: 0
             property real startY: 0
             property real endX: 0
             property real endY: 0
             property int delayMs: 0
             property real twist: 0
+            property real endScale: 0.28
+            property int flyMs: 420
 
             width: T.cardW
             height: T.cardH
             x: startX
             y: startY
             opacity: 0
-            scale: 0.82
+            scale: faceDown ? 0.7 : 0.82
             rotation: twist * 0.35
             transformOrigin: Item.Center
 
             TablicCard {
                 anchors.fill: parent
                 card: flyer.card
+                faceDown: flyer.faceDown
                 dealIndex: 0
                 enabled: false
             }
@@ -861,28 +915,28 @@ Item {
                         target: flyer
                         property: "x"
                         to: flyer.endX
-                        duration: 420
+                        duration: flyer.flyMs
                         easing.type: Easing.InOutCubic
                     }
                     NumberAnimation {
                         target: flyer
                         property: "y"
                         to: flyer.endY
-                        duration: 420
+                        duration: flyer.flyMs
                         easing.type: Easing.InCubic
                     }
                     NumberAnimation {
                         target: flyer
                         property: "scale"
-                        to: 0.28
-                        duration: 420
-                        easing.type: Easing.InCubic
+                        to: flyer.endScale
+                        duration: flyer.flyMs
+                        easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
                         target: flyer
                         property: "rotation"
                         to: flyer.twist
-                        duration: 420
+                        duration: flyer.flyMs
                         easing.type: Easing.OutQuad
                     }
                 }
@@ -928,13 +982,9 @@ Item {
                     width: parent.width
                     Text {
                         Layout.fillWidth: true
-                        text: {
-                            if (pileOpen < 0 || !match)
-                                return ""
-                            if (pileOpen === viewSeat)
-                                return "Your captures (" + myCaptured.length + ")"
-                            return (role === "ai" ? "PC" : "Opponent") + " captures (" + oppCaptured.length + ")"
-                        }
+                        text: pileOpen === viewSeat
+                              ? ("Your captures (" + myCaptured.length + ")")
+                              : ""
                         color: T.cream
                         font.family: T.displayFont
                         font.pixelSize: 18
@@ -972,10 +1022,9 @@ Item {
                         width: parent.width
                         spacing: 10
                         Repeater {
-                            model: pileOpen === viewSeat ? myCaptured.length
-                                 : (pileOpen === oppSeat ? oppCaptured.length : 0)
+                            model: pileOpen === viewSeat ? myCaptured.length : 0
                             TablicCard {
-                                card: pileOpen === viewSeat ? myCaptured[index] : oppCaptured[index]
+                                card: myCaptured[index]
                                 dealIndex: 0
                                 scale: 0.85
                                 enabled: false

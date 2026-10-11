@@ -41,8 +41,8 @@ node tests/game.test.mjs
 
 1. **Take:** tap table cards to mark a capture set, then tap a hand card that matches — cards fly into your capture stack.
 2. **Drop:** tap a hand card first, then **Drop** (or tap the table to switch into take mode instead). Ace: **Ace as 1/11** before dropping.
-3. **Stacks:** tap your pile (bottom-left) or the opponent/PC pile (top-right) anytime to inspect captured cards. Closings and opponent takes also fly into the correct pile.
-4. Table layout is a **2-column grid** (reads as 2×2 with four cards).
+3. **Stacks:** tap **your** pile (bottom-left) anytime to inspect. The PC/opponent pile shows count only (face-down — contents stay hidden). Captures still fly into the correct pile.
+4. Table layout is a **2-column grid** (reads as 2×2 with four cards). Opponent/PC **drops** animate onto the table.
 5. **Scoreboard** (top): live match points toward 101, plus **Tablas** this deal for each seat (**1 tabla = 1 point** at scoring).
 
 | Mode | Notes |
