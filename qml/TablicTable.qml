@@ -37,12 +37,32 @@ Item {
     readonly property var oppSeat: viewSeat === 0 ? 1 : 0
     readonly property var myCaptured: (tick, match && match.players) ? match.players[viewSeat].captured : []
     readonly property var oppCaptured: (tick, match && match.players) ? match.players[oppSeat].captured : []
+    readonly property int myScore: (tick, match && match.players) ? match.players[viewSeat].score : 0
+    readonly property int oppScore: (tick, match && match.players) ? match.players[oppSeat].score : 0
+    readonly property int myTablas: (tick, match) ? match.roundTablas[viewSeat] : 0
+    readonly property int oppTablas: (tick, match) ? match.roundTablas[oppSeat] : 0
+    readonly property string oppLabel: role === "ai" ? "PC" : "Opp"
+    property bool tablaPulse: false
 
     Timer {
         id: aiTimer
         interval: 520
         repeat: false
         onTriggered: root.playAiMove()
+    }
+
+    Timer {
+        id: tablaPulseTimer
+        interval: 900
+        repeat: false
+        onTriggered: root.tablaPulse = false
+    }
+
+    function noteTabla() {
+        if (!match || match.message.indexOf("Tabla") < 0)
+            return
+        tablaPulse = true
+        tablaPulseTimer.restart()
     }
 
     function scheduleAi(extraMs) {
@@ -101,6 +121,7 @@ Item {
             flyCapture(aiSeat, flight)
         clearSelection()
         bumpMatch()
+        noteTabla()
         tick++
         scheduleAi(flight.length ? 420 : 0)
     }
@@ -235,6 +256,7 @@ Item {
             flyCapture(seat, flight)
         clearSelection()
         bumpMatch()
+        noteTabla()
         tick++
         moveIntent(msg)
         scheduleAi(flight.length ? 420 : 0)
@@ -261,6 +283,7 @@ Item {
                 flyCapture(msg.seat, flight)
             clearSelection()
             bumpMatch()
+            noteTabla()
             tick++
         }
     }
@@ -343,18 +366,107 @@ Item {
             font.pixelSize: 24
         }
         Item { Layout.fillWidth: true }
-        Text {
-            text: {
-                if (!match)
-                    return ""
-                if (role === "ai")
-                    return "You " + match.players[0].score + "  ·  PC " + match.players[1].score + "  →  101"
-                return "P1 " + match.players[0].score + "  ·  P2 " + match.players[1].score + "  →  101"
+
+        // Live scoreboard — match points to 101 + tablas this deal (1 tabla = 1 pt)
+        Rectangle {
+            id: scoreBoard
+            visible: match !== null
+            Layout.preferredWidth: boardRow.implicitWidth + 28
+            Layout.preferredHeight: 58
+            radius: 6
+            color: "#0a1611dd"
+            border.color: tablaPulse ? T.brassHot : "#c9a22755"
+            border.width: tablaPulse ? 2 : 1
+
+            Behavior on border.color { ColorAnimation { duration: 180 } }
+
+            Row {
+                id: boardRow
+                anchors.centerIn: parent
+                spacing: 14
+
+                Column {
+                    spacing: 2
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "You"
+                        color: "#c4b8a8"
+                        font.family: T.bodyFont
+                        font.pixelSize: 10
+                    }
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: String(myScore)
+                        color: T.cream
+                        font.family: T.displayFont
+                        font.pixelSize: 22
+                        font.bold: true
+                    }
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "Tablas " + myTablas
+                        color: tablaPulse && match && match.lastCaptureSeat === viewSeat
+                               ? T.brassHot : T.brass
+                        font.family: T.bodyFont
+                        font.pixelSize: 11
+                        font.bold: true
+                    }
+                }
+
+                Rectangle {
+                    width: 1
+                    height: 40
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: "#c9a22733"
+                }
+
+                Column {
+                    spacing: 2
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: oppLabel
+                        color: "#c4b8a8"
+                        font.family: T.bodyFont
+                        font.pixelSize: 10
+                    }
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: String(oppScore)
+                        color: T.cream
+                        font.family: T.displayFont
+                        font.pixelSize: 22
+                        font.bold: true
+                    }
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "Tablas " + oppTablas
+                        color: tablaPulse && match && match.lastCaptureSeat === oppSeat
+                               ? T.brassHot : T.brass
+                        font.family: T.bodyFont
+                        font.pixelSize: 11
+                        font.bold: true
+                    }
+                }
+
+                Column {
+                    spacing: 2
+                    anchors.verticalCenter: parent.verticalCenter
+                    Text {
+                        text: "to 101"
+                        color: "#c4b8a870"
+                        font.family: T.bodyFont
+                        font.pixelSize: 10
+                    }
+                    Text {
+                        text: "1T=1"
+                        color: "#c4b8a855"
+                        font.family: T.bodyFont
+                        font.pixelSize: 10
+                    }
+                }
             }
-            color: T.inkSoft
-            font.family: T.bodyFont
-            font.pixelSize: 14
         }
+
         Button {
             text: "Menu"
             onClicked: root.menuRequested()
@@ -462,7 +574,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.bottom
             anchors.topMargin: 4
-            text: role === "ai" ? "PC" : "Opp"
+            text: oppLabel + " · T" + oppTablas
             color: "#c4b8a870"
             font.family: T.bodyFont
             font.pixelSize: 10
@@ -688,7 +800,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.bottom
             anchors.topMargin: 2
-            text: "You · T" + (match ? match.roundTablas[viewSeat] : 0)
+            text: "You · T" + myTablas
             color: "#c4b8a870"
             font.family: T.bodyFont
             font.pixelSize: 10

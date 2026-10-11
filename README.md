@@ -43,6 +43,7 @@ node tests/game.test.mjs
 2. **Drop:** tap a hand card first, then **Drop** (or tap the table to switch into take mode instead). Ace: **Ace as 1/11** before dropping.
 3. **Stacks:** tap your pile (bottom-left) or the opponent/PC pile (top-right) anytime to inspect captured cards. Closings and opponent takes also fly into the correct pile.
 4. Table layout is a **2-column grid** (reads as 2×2 with four cards).
+5. **Scoreboard** (top): live match points toward 101, plus **Tablas** this deal for each seat (**1 tabla = 1 point** at scoring).
 
 | Mode | Notes |
 | --- | --- |
@@ -58,7 +59,7 @@ https://raw.githubusercontent.com/uNexpectedR/tablic/main/logos-repo.json
 ```
 
 1. **Settings → Package Repositories → Add repository** (or refresh if already added).
-2. Package Manager → **Tablić** `0.6.0` → Install (allow unsigned if prompted).
+2. Package Manager → **Tablić** `0.6.1` → Install (allow unsigned if prompted).
 3. Open Tablić from the sidebar.
 4. For online play: load **delivery_module** (Module Inspector) if Host/Join errors.
 
