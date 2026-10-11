@@ -21,10 +21,16 @@ Rectangle {
     Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
     Behavior on opacity { NumberAnimation { duration: 160 } }
 
-    gradient: faceDown ? Gradient {
-        GradientStop { position: 0; color: "#1e5a42" }
-        GradientStop { position: 1; color: "#0f3024" }
-    } : null
+    // Face-down fill (ternary inline Gradient { } is invalid QML syntax).
+    Rectangle {
+        anchors.fill: parent
+        radius: parent.radius
+        visible: faceDown
+        gradient: Gradient {
+            GradientStop { position: 0; color: "#1e5a42" }
+            GradientStop { position: 1; color: "#0f3024" }
+        }
+    }
 
     // back pattern
     Rectangle {
