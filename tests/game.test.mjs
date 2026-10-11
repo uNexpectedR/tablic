@@ -40,6 +40,14 @@ function loadBundle() {
     bestAceAs: sandbox.bestAceAs,
   }
   loadFile("qml/js/Game.js", sandbox)
+  sandbox.Game = {
+    newMatch: sandbox.newMatch,
+    playMove: sandbox.playMove,
+    suggestCapture: sandbox.suggestCapture,
+    cardPoints: sandbox.cardPoints,
+    legalCaptures: sandbox.legalCaptures,
+  }
+  loadFile("qml/js/Ai.js", sandbox)
   return sandbox
 }
 
@@ -150,6 +158,17 @@ const G = loadBundle()
   assert.equal(m.phase, "scoring")
   assert.ok(m.players[1].captured.some((c) => c.id === 1))
   assert.equal(m.roundTablas[1], 0)
+}
+
+
+// AI chooses a legal move
+{
+  const m = G.newMatch(99)
+  const seat = m.turn
+  const mv = G.chooseMove(m, seat)
+  assert.ok(mv && mv.cardId !== undefined)
+  const r = G.playMove(m, seat, mv.cardId, mv.captureIds || [], mv.aceAs || 1)
+  assert.ok(r.ok, r.error)
 }
 
 console.log("game.test.mjs: ok")

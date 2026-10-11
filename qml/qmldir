@@ -1,3 +1,4 @@
+module com.logos.module.tablic
 singleton Theme 1.0 Theme.qml
 CardView 1.0 CardView.qml
 Table 1.0 Table.qml

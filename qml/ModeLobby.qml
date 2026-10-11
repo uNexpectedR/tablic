@@ -6,7 +6,7 @@ Item {
     id: root
     property var net: null
 
-    signal playLocal()
+    signal playAi()
     signal hostOnline()
     signal joinOnline(string code)
 
@@ -107,7 +107,7 @@ Item {
         }
         Text {
             Layout.fillWidth: true
-            text: "Serbian fishing game — capture the table, race to 101."
+            text: "Capture the table, race to 101 — vs PC or online."
             color: muted
             font.family: "Source Sans 3"
             font.pixelSize: 15
@@ -184,12 +184,12 @@ Item {
         }
 
         Button {
-            id: localBtn
+            id: aiBtn
             Layout.fillWidth: true
-            text: "Local hotseat"
-            onClicked: root.playLocal()
+            text: "Play against PC"
+            onClicked: root.playAi()
             contentItem: Text {
-                text: localBtn.text
+                text: aiBtn.text
                 color: cream
                 font.family: "Source Sans 3"
                 font.pixelSize: 14

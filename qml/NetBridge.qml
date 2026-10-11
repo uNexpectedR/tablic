@@ -6,7 +6,7 @@ import "js/Delivery.js" as Delivery
 Item {
     id: root
 
-    property string role: "none"   // none | local | host | guest
+    property string role: "none"   // none | ai | host | guest
     property string roomCode: ""
     property string senderId: ""
     property string status: "idle"
@@ -88,14 +88,14 @@ Item {
         })
     }
 
-    function startLocal() {
-        role = "local"
+    function startAi() {
+        role = "ai"
         roomCode = ""
         roomReady = false
         peerPresent = false
         matchStarted = false
         localSeat = 0
-        setStatus("local", "Hotseat — pass the device")
+        setStatus("ai", "You vs PC")
     }
 
     function hostGame() {
@@ -142,7 +142,7 @@ Item {
     }
 
     function broadcastMove(msg) {
-        if (role !== "local" && msg)
+        if ((role === "host" || role === "guest") && msg)
             send(msg)
     }
 

@@ -1,6 +1,6 @@
 # Tablić
 
-Serbian fishing card game for **Logos Basecamp** (`ui_qml` module). Capture cards from the table, score to **101**. Local hotseat or **online host/join** via Logos `delivery_module`.
+Serbian fishing card game for **Logos Basecamp** (`ui_qml` module). Capture cards from the table, score to **101**. Play against **PC** or **online host/join** via Logos `delivery_module`.
 
 ## Stack
 
@@ -12,6 +12,7 @@ Serbian fishing card game for **Logos Basecamp** (`ui_qml` module). Capture card
 | `qml/NetBridge.qml` | Online host/join over `logos.callModule` / `onModuleEvent` |
 | `qml/js/Game.js` | Deal, play, scoring |
 | `qml/js/Capture.js` | Legal capture combinations |
+| `qml/js/Ai.js` | PC opponent moves |
 
 ## Rules (2 players)
 
@@ -42,7 +43,7 @@ node tests/game.test.mjs
 
 | Mode | Notes |
 | --- | --- |
-| Local hotseat | Same device; hand flips with the turn |
+| Play against PC | You are seat 0; PC plays the other |
 | Host / Join | Two Basecamp apps; room code over `delivery_module` |
 
 ## Install in Logos Basecamp
@@ -54,7 +55,7 @@ https://raw.githubusercontent.com/uNexpectedR/tablic/main/logos-repo.json
 ```
 
 1. **Settings → Package Repositories → Add repository** (or refresh if already added).
-2. Package Manager → **Tablić** `0.1.0` → Install (allow unsigned if prompted).
+2. Package Manager → **Tablić** `0.2.0` → Install (allow unsigned if prompted).
 3. Open Tablić from the sidebar.
 4. For online play: load **delivery_module** (Module Inspector) if Host/Join errors.
 

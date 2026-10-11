@@ -3,13 +3,14 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "js/Game.js" as Game
 import "js/Cards.js" as Cards
+import "js/Ai.js" as Ai
 
 Item {
     id: root
 
     property var match: null
-    property int localSeat: -1   // -1 = hotseat (see current turn)
-    property string role: "local"
+    property int localSeat: 0
+    property string role: "ai"   // ai | host | guest
 
     signal moveIntent(var msg)
     signal menuRequested()
@@ -22,20 +23,49 @@ Item {
     property var currentOptions: []
     property int tick: 0
 
-    readonly property int viewSeat: localSeat < 0
-        ? (match ? match.turn : 0)
-        : localSeat
-    readonly property bool myTurn: match && match.phase === "play"
-        && (localSeat < 0 || match.turn === localSeat)
+    readonly property int viewSeat: localSeat
+    readonly property int aiSeat: 1
+    readonly property bool myTurn: match && match.phase === "play" && match.turn === localSeat
+    readonly property bool aiTurn: role === "ai" && match && match.phase === "play"
+        && match.turn === aiSeat
     readonly property var myHand: (tick, match && match.players) ? match.players[viewSeat].hand : []
     readonly property int oppHandCount: (tick, match && match.players) ? match.players[oppSeat].hand.length : 0
     readonly property int tableCount: (tick, match) ? match.table.length : 0
     readonly property var oppSeat: viewSeat === 0 ? 1 : 0
 
+    Timer {
+        id: aiTimer
+        interval: 550
+        repeat: false
+        onTriggered: root.playAiMove()
+    }
+
+    function scheduleAi() {
+        if (aiTurn)
+            aiTimer.restart()
+    }
+
+    function playAiMove() {
+        if (!aiTurn)
+            return
+        var mv = Ai.chooseMove(match, aiSeat)
+        if (!mv)
+            return
+        var result = Game.playMove(match, aiSeat, mv.cardId, mv.captureIds || [], mv.aceAs || 1)
+        if (!result.ok)
+            return
+        clearSelection()
+        matchChanged()
+        tick++
+        scheduleAi()
+    }
+
     function restart(seed) {
+        aiTimer.stop()
         match = Game.newMatch(seed === undefined ? Date.now() : seed)
         clearSelection()
         tick++
+        scheduleAi()
     }
 
     function clearSelection() {
@@ -74,8 +104,6 @@ Item {
 
     function selectHandCard(cardId) {
         if (!myTurn)
-            return
-        if (localSeat >= 0 && match.turn !== localSeat)
             return
         if (selectedCardId === cardId) {
             clearSelection()
@@ -150,6 +178,7 @@ Item {
         matchChanged()
         tick++
         moveIntent(msg)
+        scheduleAi()
     }
 
     function applyRemoteMove(msg) {
@@ -165,7 +194,7 @@ Item {
         if (msg.t !== "move")
             return
         // ignore echo of own seat when online
-        if (localSeat >= 0 && msg.seat === localSeat)
+        if (msg.seat === localSeat)
             return
         var result = Game.playMove(match, msg.seat, msg.cardId, msg.captureIds || [], msg.aceAs || 1)
         if (result.ok) {
@@ -178,12 +207,14 @@ Item {
     function continueRound() {
         if (!match || match.phase !== "scoring")
             return
+        // In vs-PC, either seat may advance; online only the local player clicks.
         Game.continueMatch(match)
         clearSelection()
         matchChanged()
         tick++
         moveIntent({ t: "next" })
         nextRoundRequested()
+        scheduleAi()
     }
 
     function matchChanged() {
@@ -221,10 +252,13 @@ Item {
         }
         Item { Layout.fillWidth: true }
         Text {
-            text: match
-                  ? ("P1 " + match.players[0].score + "  ·  P2 " + match.players[1].score
-                     + "  →  101")
-                  : ""
+            text: {
+                if (!match)
+                    return ""
+                if (role === "ai")
+                    return "You " + match.players[0].score + "  ·  PC " + match.players[1].score + "  →  101"
+                return "P1 " + match.players[0].score + "  ·  P2 " + match.players[1].score + "  →  101"
+            }
             color: "#c4b8a8"
             font.family: "Source Sans 3"
             font.pixelSize: 14
@@ -261,9 +295,9 @@ Item {
                 return match.message
             if (match.phase === "scoring")
                 return match.message + "  ·  Continue for next deal"
-            var who = localSeat < 0
-                      ? ("Player " + (match.turn + 1) + "'s turn")
-                      : (match.turn === localSeat ? "Your turn" : "Opponent's turn")
+            var who = match.turn === localSeat
+                      ? "Your turn"
+                      : (role === "ai" ? "PC thinking…" : "Opponent's turn")
             var tabla = match.message.indexOf("Tabla") >= 0 ? "  ·  Tabla!" : ""
             return who + "  ·  stock " + match.stock.length + tabla
         }

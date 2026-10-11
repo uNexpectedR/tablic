@@ -35,10 +35,10 @@ Item {
         anchors.fill: parent
         visible: root.screen === "lobby"
         net: net
-        onPlayLocal: {
-            net.startLocal()
-            table.localSeat = -1
-            table.role = "local"
+        onPlayAi: {
+            net.startAi()
+            table.localSeat = 0
+            table.role = "ai"
             table.restart()
             root.screen = "play"
         }
