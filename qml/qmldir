@@ -1,5 +1,3 @@
+# logos-module-builder contract: URI only. Type names resolve from *.qml
+# basenames under this directory (see mkLogosQmlModule.nix qmldir note).
 module com.logos.module.tablic
-TablicCard 1.0 TablicCard.qml
-TablicTable 1.0 TablicTable.qml
-TablicLobby 1.0 TablicLobby.qml
-TablicNet 1.0 TablicNet.qml

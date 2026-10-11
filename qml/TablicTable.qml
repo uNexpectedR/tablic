@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "."
 import "js/Game.js" as Game
 import "js/Cards.js" as Cards
 import "js/Ai.js" as Ai
