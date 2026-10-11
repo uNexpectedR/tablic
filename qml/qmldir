@@ -1,6 +1,5 @@
 module com.logos.module.tablic
-singleton Theme 1.0 Theme.qml
-CardView 1.0 CardView.qml
-Table 1.0 Table.qml
-ModeLobby 1.0 ModeLobby.qml
-NetBridge 1.0 NetBridge.qml
+TablicCard 1.0 TablicCard.qml
+TablicTable 1.0 TablicTable.qml
+TablicLobby 1.0 TablicLobby.qml
+TablicNet 1.0 TablicNet.qml

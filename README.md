@@ -9,7 +9,7 @@ Serbian fishing card game for **Logos Basecamp** (`ui_qml` module). Capture card
 | `metadata.json` | Module identity (`type: ui_qml`, `view: qml/Main.qml`) |
 | `flake.nix` | Nix build via `mkLogosQmlModule` |
 | `qml/Main.qml` | Lobby + table root |
-| `qml/NetBridge.qml` | Online host/join over `logos.callModule` / `onModuleEvent` |
+| `qml/TablicNet.qml` | Online host/join over `logos.callModule` / `onModuleEvent` |
 | `qml/js/Game.js` | Deal, play, scoring |
 | `qml/js/Capture.js` | Legal capture combinations |
 | `qml/js/Ai.js` | PC opponent moves |
@@ -55,7 +55,7 @@ https://raw.githubusercontent.com/uNexpectedR/tablic/main/logos-repo.json
 ```
 
 1. **Settings → Package Repositories → Add repository** (or refresh if already added).
-2. Package Manager → **Tablić** `0.2.0` → Install (allow unsigned if prompted).
+2. Package Manager → **Tablić** `0.3.0` → Install (allow unsigned if prompted).
 3. Open Tablić from the sidebar.
 4. For online play: load **delivery_module** (Module Inspector) if Host/Join errors.
 

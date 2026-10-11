@@ -314,7 +314,7 @@ Item {
         spacing: -36
         Repeater {
             model: oppHandCount
-            CardView {
+            TablicCard {
                 faceDown: true
                 scale: 0.72
                 enabled: false
@@ -343,7 +343,7 @@ Item {
         spacing: 10
         Repeater {
             model: tableCount
-            CardView {
+            TablicCard {
                 card: match.table[index]
                 marked: root.isMarked(match.table[index].id)
                 dimmed: root.selectedCardId >= 0 && !marked && currentOptions.length > 0
@@ -510,7 +510,7 @@ Item {
         spacing: 8
         Repeater {
             model: myHand.length
-            CardView {
+            TablicCard {
                 card: myHand[index]
                 selected: selectedCardId === myHand[index].id
                 dimmed: !myTurn

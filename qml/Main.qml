@@ -17,7 +17,7 @@ Item {
         }
     }
 
-    NetBridge {
+    TablicNet {
         id: net
         onMatchReady: function (seed) {
             table.localSeat = net.localSeat
@@ -30,7 +30,7 @@ Item {
         }
     }
 
-    ModeLobby {
+    TablicLobby {
         id: lobby
         anchors.fill: parent
         visible: root.screen === "lobby"
@@ -46,7 +46,7 @@ Item {
         onJoinOnline: function (code) { net.joinGame(code) }
     }
 
-    Table {
+    TablicTable {
         id: table
         anchors.fill: parent
         visible: root.screen === "play"
