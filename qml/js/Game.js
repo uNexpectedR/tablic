@@ -2,11 +2,16 @@
 .import "Cards.js" as Cards
 .import "Capture.js" as Capture
 
-/*! Two-player Serbian Tablić — deal, play, score to 101. */
+/*! Two-player Serbian Tablić — one deck, or play until 101. */
 
 var TARGET = 101
 var HAND_SIZE = 6
 var TABLE_OPEN = 4
+
+// mode: "101" (match to TARGET) | "one" (single deck / one game)
+function normalizeMode(mode) {
+    return mode === "one" ? "one" : "101"
+}
 
 function emptyPlayer() {
     return {
@@ -19,13 +24,14 @@ function emptyPlayer() {
     }
 }
 
-function createMatch(seed) {
+function createMatch(seed, mode) {
     return {
         seed: seed >>> 0,
         dealSeed: seed >>> 0,
         dealer: 0,
         turn: 1,
         phase: "play", // play | scoring | over
+        mode: normalizeMode(mode),
         stock: [],
         table: [],
         players: [emptyPlayer(), emptyPlayer()],
@@ -83,8 +89,8 @@ function startRound(match) {
     match.message = "Player " + (match.turn + 1) + " leads"
 }
 
-function newMatch(seed) {
-    var m = createMatch(seed === undefined ? Date.now() : seed)
+function newMatch(seed, mode) {
+    var m = createMatch(seed === undefined ? Date.now() : seed, mode)
     startRound(m)
     return m
 }
@@ -146,6 +152,20 @@ function endRound(match) {
     match.phase = "scoring"
     match.message = "Round: " + p0 + "–" + p1
         + "  ·  Total: " + match.players[0].score + "–" + match.players[1].score
+
+    if (match.mode === "one") {
+        match.phase = "over"
+        if (match.players[0].score === match.players[1].score) {
+            match.winner = -1
+            match.message = "One game — tie "
+                + match.players[0].score + "–" + match.players[1].score
+        } else {
+            match.winner = match.players[0].score > match.players[1].score ? 0 : 1
+            match.message = "One game — player " + (match.winner + 1) + " wins "
+                + match.players[0].score + "–" + match.players[1].score
+        }
+        return
+    }
 
     if (match.players[0].score >= TARGET || match.players[1].score >= TARGET) {
         match.phase = "over"
@@ -214,7 +234,7 @@ function playMove(match, seat, cardId, captureIds, aceAs) {
 
         if (match.table.length === 0) {
             match.roundTablas[seat]++
-            match.message = "Tabla!"
+            match.message = "Table!"
         } else {
             match.message = "Captured " + ids.length
         }

@@ -6,10 +6,12 @@ import "js/Theme.js" as T
 Item {
     id: root
     property var net: null
+    // "101" = play until 101 | "one" = one game (one deck)
+    property string gameLength: "101"
 
-    signal playAi()
-    signal hostOnline()
-    signal joinOnline(string code)
+    signal playAi(string length)
+    signal hostOnline(string length)
+    signal joinOnline(string code, string length)
 
     // Atmosphere
     Rectangle {
@@ -114,7 +116,7 @@ Item {
         }
         Text {
             Layout.fillWidth: true
-            text: "Capture the table. First to 101."
+            text: "Capture the table. Choose game length below."
             color: T.inkSoft
             font.family: T.bodyFont
             font.pixelSize: 15
@@ -123,13 +125,89 @@ Item {
             NumberAnimation on opacity { from: 0; to: 1; duration: 900; easing.type: Easing.OutCubic }
         }
 
-        Item { Layout.preferredHeight: 14 }
+        Item { Layout.preferredHeight: 8 }
+
+        Text {
+            Layout.fillWidth: true
+            text: "Game length"
+            color: "#c4b8a8"
+            font.family: T.bodyFont
+            font.pixelSize: 12
+            horizontalAlignment: Text.AlignHCenter
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+            Button {
+                id: oneBtn
+                Layout.fillWidth: true
+                checkable: true
+                checked: root.gameLength === "one"
+                text: "One game"
+                onClicked: root.gameLength = "one"
+                contentItem: Text {
+                    text: oneBtn.text
+                    color: oneBtn.checked ? T.ink : T.cream
+                    font.family: T.bodyFont
+                    font.pixelSize: 13
+                    font.bold: oneBtn.checked
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                background: Rectangle {
+                    implicitHeight: 40
+                    color: oneBtn.checked ? T.brass : "#06140f"
+                    border.color: oneBtn.checked ? T.brass : T.line
+                    border.width: 1
+                    radius: 4
+                }
+            }
+            Button {
+                id: to101Btn
+                Layout.fillWidth: true
+                checkable: true
+                checked: root.gameLength === "101"
+                text: "Play to 101"
+                onClicked: root.gameLength = "101"
+                contentItem: Text {
+                    text: to101Btn.text
+                    color: to101Btn.checked ? T.ink : T.cream
+                    font.family: T.bodyFont
+                    font.pixelSize: 13
+                    font.bold: to101Btn.checked
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                background: Rectangle {
+                    implicitHeight: 40
+                    color: to101Btn.checked ? T.brass : "#06140f"
+                    border.color: to101Btn.checked ? T.brass : T.line
+                    border.width: 1
+                    radius: 4
+                }
+            }
+        }
+
+        Text {
+            Layout.fillWidth: true
+            text: root.gameLength === "one"
+                  ? "One deck — highest score after the deal wins"
+                  : "Keep dealing until someone reaches 101"
+            color: "#c4b8a870"
+            font.family: T.bodyFont
+            font.pixelSize: 11
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+        }
+
+        Item { Layout.preferredHeight: 10 }
 
         Button {
             id: hostBtn
             Layout.fillWidth: true
             text: "Host online match"
-            onClicked: root.hostOnline()
+            onClicked: root.hostOnline(root.gameLength)
             contentItem: Text {
                 text: hostBtn.text
                 color: T.ink
@@ -168,7 +246,7 @@ Item {
             Button {
                 id: joinBtn
                 text: "Join"
-                onClicked: root.joinOnline(joinField.text)
+                onClicked: root.joinOnline(joinField.text, root.gameLength)
                 contentItem: Text {
                     text: joinBtn.text
                     color: T.cream
@@ -193,7 +271,7 @@ Item {
             id: aiBtn
             Layout.fillWidth: true
             text: "Play against PC"
-            onClicked: root.playAi()
+            onClicked: root.playAi(root.gameLength)
             contentItem: Text {
                 text: aiBtn.text
                 color: T.cream

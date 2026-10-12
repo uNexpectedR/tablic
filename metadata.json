@@ -1,10 +1,10 @@
 {
   "name": "tablic",
   "display_name": "Tablić",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "type": "ui_qml",
   "category": "games",
-  "description": "Serbian Tablić — hidden PC captures, opponent drop motion, live scoreboard, take/drop UX. Play vs PC or online via Logos delivery.",
+  "description": "Serbian Tablić — one game or to 101, Tables counter, hidden PC captures, take/drop motion. Play vs PC or online via Logos delivery.",
   "view": "qml/Main.qml",
   "icon": "src/icons/icon.png",
   "dependencies": [],

@@ -16,13 +16,14 @@ Item {
     property bool peerPresent: false
     property int localSeat: 0
     property int matchSeed: 0
+    property string gameLength: "101" // "101" | "one" — host chooses; guests take host's
     property bool matchStarted: false
     property bool logosAvailable: false
 
     readonly property string topic: roomCode ? Net.topicForRoom(roomCode) : ""
     readonly property var logosApi: typeof logos !== "undefined" ? logos : null
 
-    signal matchReady(int seed)
+    signal matchReady(int seed, string length)
     signal remoteMove(var msg)
     signal netError(string message)
 
@@ -88,8 +89,9 @@ Item {
         })
     }
 
-    function startAi() {
+    function startAi(length) {
         role = "ai"
+        gameLength = length === "one" ? "one" : "101"
         roomCode = ""
         roomReady = false
         peerPresent = false
@@ -98,8 +100,9 @@ Item {
         setStatus("ai", "You vs PC")
     }
 
-    function hostGame() {
+    function hostGame(length) {
         role = "host"
+        gameLength = length === "one" ? "one" : "101"
         localSeat = 0
         senderId = "host-" + Math.floor(Math.random() * 1e6)
         roomCode = Net.makeRoomCode(Date.now() % 1e9)
@@ -112,7 +115,7 @@ Item {
             subscribeRoom(function (ok2) {
                 if (!ok2)
                     return
-                send({ t: "hello", role: "host", seed: matchSeed })
+                send({ t: "hello", role: "host", seed: matchSeed, mode: gameLength })
                 setStatus("room", "Share code " + roomCode + " — waiting for guest")
             })
         })
@@ -147,9 +150,9 @@ Item {
     }
 
     function startMatchAsHost() {
-        send({ t: "start", seed: matchSeed })
+        send({ t: "start", seed: matchSeed, mode: gameLength })
         matchStarted = true
-        matchReady(matchSeed)
+        matchReady(matchSeed, gameLength)
     }
 
     function onHello(msg) {
@@ -160,6 +163,8 @@ Item {
         } else if (role === "guest" && msg.role === "host") {
             if (msg.seed !== undefined)
                 matchSeed = msg.seed
+            if (msg.mode === "one" || msg.mode === "101")
+                gameLength = msg.mode
             setStatus("room", "Host found — waiting for start")
             send({ t: "hello", role: "guest" })
         }
@@ -176,9 +181,11 @@ Item {
         else if (msg.t === "start") {
             if (msg.seed !== undefined)
                 matchSeed = msg.seed
+            if (msg.mode === "one" || msg.mode === "101")
+                gameLength = msg.mode
             matchStarted = true
             setStatus("play", "Online match live")
-            matchReady(matchSeed)
+            matchReady(matchSeed, gameLength)
         } else if (msg.t === "move" || msg.t === "next") {
             remoteMove(msg)
         }

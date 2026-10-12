@@ -59,7 +59,7 @@ Item {
     }
 
     function noteTabla() {
-        if (!match || match.message.indexOf("Tabla") < 0)
+        if (!match || match.message.indexOf("Table!") < 0)
             return
         tablaPulse = true
         tablaPulseTimer.restart()
@@ -159,9 +159,9 @@ Item {
         scheduleAi(flight.length || dropCard ? 420 : 0)
     }
 
-    function restart(seed) {
+    function restart(seed, mode) {
         aiTimer.stop()
-        match = Game.newMatch(seed === undefined ? Date.now() : seed)
+        match = Game.newMatch(seed === undefined ? Date.now() : seed, mode)
         clearSelection()
         pileOpen = -1
         dealGen++
@@ -409,7 +409,7 @@ Item {
         }
         Item { Layout.fillWidth: true }
 
-        // Live scoreboard — match points to 101 + tablas this deal (1 tabla = 1 pt)
+        // Live scoreboard — match points + tables this deal (1 table = 1 pt)
         Rectangle {
             id: scoreBoard
             visible: match !== null
@@ -446,7 +446,7 @@ Item {
                     }
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: "Tablas " + myTablas
+                        text: "Tables " + myTablas
                         color: tablaPulse && match && match.lastCaptureSeat === viewSeat
                                ? T.brassHot : T.brass
                         font.family: T.bodyFont
@@ -481,7 +481,7 @@ Item {
                     }
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: "Tablas " + oppTablas
+                        text: "Tables " + oppTablas
                         color: tablaPulse && match && match.lastCaptureSeat === oppSeat
                                ? T.brassHot : T.brass
                         font.family: T.bodyFont
@@ -494,13 +494,13 @@ Item {
                     spacing: 2
                     anchors.verticalCenter: parent.verticalCenter
                     Text {
-                        text: "to 101"
+                        text: (tick, match && match.mode === "one") ? "one game" : "to 101"
                         color: "#c4b8a870"
                         font.family: T.bodyFont
                         font.pixelSize: 10
                     }
                     Text {
-                        text: "1T=1"
+                        text: "1 table=1"
                         color: "#c4b8a855"
                         font.family: T.bodyFont
                         font.pixelSize: 10
@@ -534,14 +534,15 @@ Item {
         id: statusLine
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: topBar.bottom
-        anchors.topMargin: 2
+        anchors.topMargin: 4
+        z: 6
         text: {
             if (!match)
                 return ""
             if (match.phase === "over")
                 return match.message
             if (match.phase === "scoring")
-                return match.message + "  ·  Continue for next deal"
+                return match.message + (match.mode === "one" ? "" : "  ·  Continue for next deal")
             if (myTurn && selectMode === "table" && selectedCapture.length)
                 return "Table marked — tap a hand card to take"
             if (myTurn && selectMode === "hand")
@@ -549,21 +550,37 @@ Item {
             var who = match.turn === localSeat
                 ? "Your turn — table first to take, or hand to drop"
                 : (role === "ai" ? "PC thinking…" : "Opponent's turn")
-            var tabla = match.message.indexOf("Tabla") >= 0 ? "  ·  Tabla!" : ""
-            return who + "  ·  stock " + match.stock.length + tabla
+            var tableClear = match.message.indexOf("Table!") >= 0 ? "  ·  Table!" : ""
+            return who + "  ·  stock " + match.stock.length + tableClear
         }
         color: T.brassHot
         font.family: T.bodyFont
         font.pixelSize: 13
     }
 
+    // Label above enemy hand — kept clear of overlapping cards
+    Text {
+        id: oppSeatLabel
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: statusLine.bottom
+        anchors.topMargin: 8
+        z: 6
+        visible: match !== null
+        text: oppLabel + "  ·  Tables " + oppTablas
+        color: "#d8cfc2"
+        font.family: T.bodyFont
+        font.pixelSize: 12
+        font.bold: true
+    }
+
     // Opponent hand
     Row {
         id: oppHandRow
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        anchors.topMargin: 62
+        anchors.top: oppSeatLabel.bottom
+        anchors.topMargin: 6
         spacing: -40
+        z: 1
         Repeater {
             model: oppHandCount
             TablicCard {
@@ -581,11 +598,11 @@ Item {
         width: 56
         height: 78
         anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: 18
-        anchors.topMargin: 70
+        anchors.top: oppSeatLabel.top
+        anchors.rightMargin: 18
         visible: match !== null
         opacity: oppCaptured.length ? 1 : 0.35
+        z: 2
 
         Repeater {
             model: Math.min(3, oppCaptured.length)
@@ -629,10 +646,10 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.bottom
             anchors.topMargin: 4
-            text: oppLabel + " · T" + oppTablas
-            color: "#c4b8a870"
+            text: "hidden"
+            color: "#c4b8a855"
             font.family: T.bodyFont
-            font.pixelSize: 10
+            font.pixelSize: 9
         }
     }
 
@@ -752,7 +769,7 @@ Item {
                     visible: match && match.phase === "scoring"
                     text: match
                         ? ("Cards " + match.players[0].roundCards + "–" + match.players[1].roundCards
-                           + "  ·  Tablas " + match.roundTablas[0] + "–" + match.roundTablas[1])
+                           + "  ·  Tables " + match.roundTablas[0] + "–" + match.roundTablas[1])
                         : ""
                     color: T.inkSoft
                     font.family: T.bodyFont
@@ -850,7 +867,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.bottom
             anchors.topMargin: 2
-            text: "You · T" + myTablas
+            text: "You · Tables " + myTablas
             color: "#c4b8a870"
             font.family: T.bodyFont
             font.pixelSize: 10

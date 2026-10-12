@@ -82,17 +82,17 @@ Item {
         }
         onLoaded: {
             item.net = netLoader.item
-            item.playAi.connect(function () {
-                netLoader.item.startAi()
+            item.playAi.connect(function (length) {
+                netLoader.item.startAi(length)
                 if (!tableLoader.item)
                     return
                 tableLoader.item.localSeat = 0
                 tableLoader.item.role = "ai"
-                tableLoader.item.restart()
+                tableLoader.item.restart(undefined, length)
                 root.screen = "play"
             })
-            item.hostOnline.connect(function () { netLoader.item.hostGame() })
-            item.joinOnline.connect(function (code) { netLoader.item.joinGame(code) })
+            item.hostOnline.connect(function (length) { netLoader.item.hostGame(length) })
+            item.joinOnline.connect(function (code, length) { netLoader.item.joinGame(code) })
         }
     }
 
@@ -127,12 +127,12 @@ Item {
     Connections {
         target: netLoader.item
         enabled: netLoader.status === Loader.Ready
-        function onMatchReady(seed) {
+        function onMatchReady(seed, length) {
             if (!tableLoader.item)
                 return
             tableLoader.item.localSeat = netLoader.item.localSeat
             tableLoader.item.role = netLoader.item.role
-            tableLoader.item.restart(seed)
+            tableLoader.item.restart(seed, length || netLoader.item.gameLength)
             root.screen = "play"
         }
         function onRemoteMove(msg) {
@@ -141,5 +141,5 @@ Item {
         }
     }
 
-    Component.onCompleted: console.log("Tablić Main.qml ready (0.5.0)")
+    Component.onCompleted: console.log("Tablić Main.qml ready (0.6.3)")
 }

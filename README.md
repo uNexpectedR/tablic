@@ -1,6 +1,6 @@
 # Tablić
 
-Serbian fishing card game for **Logos Basecamp** (`ui_qml` module). Capture cards from the table, score to **101**. Play against **PC** or **online host/join** via Logos `delivery_module`.
+Serbian fishing card game for **Logos Basecamp** (`ui_qml` module). Capture cards from the table — **one game** or play to **101**. Play against **PC** or **online host/join** via Logos `delivery_module`.
 
 ## Stack
 
@@ -21,9 +21,9 @@ Serbian fishing card game for **Logos Basecamp** (`ui_qml` module). Capture card
 - 52-card deck. Values: K=14, Q=13, J=12, pip face value, Ace = 1 or 11.
 - Deal 4 face-up to the table, then 6 each (two rounds of three). Fresh 6 each when hands empty (four deals total).
 - Play one card: capture a table card or disjoint sets that each sum to your card’s value — or drop it on the table.
-- Clearing the table is a **tabla** (+1). Leftover table at the end of the deck goes to the last capturer (no tabla).
-- Scoring per deal: each A/K/Q/J = 1; tens = 1 (10♦ = 2); 2♣ = 1; most cards = 3 (tie → none); each tabla = 1.
-- First to **101** (or more) after a completed deal wins. Tie at 101+ → another deal.
+- Clearing the table is a **table** (+1). Leftover table at the end of the deck goes to the last capturer (no table bonus).
+- Scoring per deal: each A/K/Q/J = 1; tens = 1 (10♦ = 2); 2♣ = 1; most cards = 3 (tie → none); each table = 1.
+- Lobby choice: **one game** (one deck — highest score wins) or **play to 101** (more deals until someone reaches 101; tie at 101+ → another deal).
 
 ## Run locally
 
@@ -43,12 +43,13 @@ node tests/game.test.mjs
 2. **Drop:** tap a hand card first, then **Drop** (or tap the table to switch into take mode instead). Ace: **Ace as 1/11** before dropping.
 3. **Stacks:** tap **your** pile (bottom-left) anytime to inspect. The PC/opponent pile shows count only (face-down — contents stay hidden). Captures still fly into the correct pile.
 4. Table layout is a **2-column grid** (reads as 2×2 with four cards). Opponent/PC **drops** animate onto the table.
-5. **Scoreboard** (top): live match points toward 101, plus **Tablas** this deal for each seat (**1 tabla = 1 point** at scoring).
+5. **Scoreboard** (top): live match points, plus **Tables** this deal for each seat (**1 table = 1 point** at scoring).
+6. Lobby: pick **One game** or **Play to 101** before starting.
 
 | Mode | Notes |
 | --- | --- |
 | Play against PC | You are seat 0; PC plays the other |
-| Host / Join | Two Basecamp apps; room code over `delivery_module` |
+| Host / Join | Two Basecamp apps; room code over `delivery_module` (host’s game length applies) |
 
 ## Install in Logos Basecamp
 
@@ -59,7 +60,7 @@ https://raw.githubusercontent.com/uNexpectedR/tablic/main/logos-repo.json
 ```
 
 1. **Settings → Package Repositories → Add repository** (or refresh if already added).
-2. Package Manager → **Tablić** `0.6.2` → Install (allow unsigned if prompted).
+2. Package Manager → **Tablić** `0.6.3` → Install (allow unsigned if prompted).
 3. Open Tablić from the sidebar.
 4. For online play: load **delivery_module** (Module Inspector) if Host/Join errors.
 

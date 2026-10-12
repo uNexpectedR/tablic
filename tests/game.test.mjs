@@ -160,6 +160,26 @@ const G = loadBundle()
   assert.equal(m.roundTablas[1], 0)
 }
 
+// One-deck mode: first completed deck ends the match
+{
+  const m = G.createMatch(4, "one")
+  assert.equal(m.mode, "one")
+  m.phase = "play"
+  m.turn = 0
+  m.dealer = 0
+  m.stock = []
+  m.table = []
+  m.players[0].hand = [{ id: 3, suit: "h", rank: "2" }]
+  m.players[1].hand = []
+  m.players[0].captured = [{ id: 20, suit: "d", rank: "10" }] // 2 pts
+  m.players[1].captured = [{ id: 21, suit: "c", rank: "A" }] // 1 pt
+  m.lastCaptureSeat = 0
+  m.roundTablas = [0, 0]
+  G.playMove(m, 0, 3, [], 1)
+  assert.equal(m.phase, "over")
+  assert.equal(m.winner, 0)
+}
+
 
 // AI chooses a legal move
 {
